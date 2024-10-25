@@ -17,7 +17,7 @@ class ServicioProyectos
         $proyectos = Proyecto::all();
         return $proyectos;
     }
-    public function insertarProyecto($proyecto){
+    public function insertarProyecto(Request $proyecto){
         $nuevoProyecto = new Proyecto();
         $nuevoProyecto->nombre = $proyecto->nombre;
         $nuevoProyecto->descripcion = $proyecto->descripcion;
@@ -28,16 +28,17 @@ class ServicioProyectos
     }
 
 
-    public function modificarProyecto(Proyecto $proyecto){
+    public function modificarProyecto(Request $proyecto){
         $modificarProyecto = $this->filtrarProyecto($proyecto->id);
         $modificarProyecto->nombre = $proyecto->nombre;
         $modificarProyecto->descripcion = $proyecto->descripcion;
         $modificarProyecto->fecha_inicio = $proyecto->fecha_inicio;
         $modificarProyecto->fecha_fin = $proyecto->fecha_fin;
         $modificarProyecto->save();
+        return $modificarProyecto;
     }
 
-    public function eliminarProyecto(Proyecto $proyecto){
+    public function eliminarProyecto(Request $proyecto){
         $eliminarProyecto = $this->filtrarProyecto($proyecto->id);
         $eliminarProyecto->delete();
     }

@@ -13,7 +13,8 @@ Route::controller(ProyectosController::class)->group(function () {
     Route::get('proyectos','index');
     Route::get('obtenerproyectos','proyectos');
     Route::post('guardarproyecto','store');
- /*   Route::get('terminos-condiciones','terminoscondiciones');
-    Route::get('politica-garantia','politicagarantia');
+    Route::delete('eliminarproyecto','delete');
+    Route::put('modificarproyecto','update');
+ /*   Route::get('politica-garantia','politicagarantia');
     Route::get('manifiestos','manifiestos'); */
 });
