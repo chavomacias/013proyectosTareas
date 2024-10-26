@@ -1,7 +1,27 @@
 VERSION DE PHP 	 	8.2.12
 VERSION DE LARAVEL	11.9
+Composer version 2.8.1 
+
+
+Instalar dependencias
+
+composer update 
+
+composer install
+
+Crear la base de datos mysql
+
+
+DB_CONNECTION=mysql
+DB_HOST=localhost
+DB_PORT=3306
+DB_DATABASE=013proyectos
+DB_USERNAME=root
+DB_PASSWORD=
+
 
 Migrar base de datos 	ejecutar
+
 
 php artisan migrate
 
@@ -10,3 +30,7 @@ Si ya existe la base de datos
 php artisan migrate:fresh
 
 
+
+ejecutar y probar
+
+php artisan serve
