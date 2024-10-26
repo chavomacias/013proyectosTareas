@@ -1,0 +1,12 @@
+VERSION DE PHP 	 	8.2.12
+VERSION DE LARAVEL	11.9
+
+Migrar base de datos 	ejecutar
+
+php artisan migrate
+
+Si ya existe la base de datos
+
+php artisan migrate:fresh
+
+
