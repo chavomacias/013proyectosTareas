@@ -14,7 +14,8 @@ class ServicioProyectos
     }
 
     public function obtenerProyectos(){
-        $proyectos = Proyecto::all();
+        $proyectos = Proyecto::with('Tareas')
+        ->get();
         return $proyectos;
     }
     public function insertarProyecto(Request $proyecto){

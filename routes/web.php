@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Proyectos\ProyectosController;
+use App\Http\Controllers\Proyectos\TareasController;
 
 
 Route::get('/', function () {
@@ -15,6 +16,11 @@ Route::controller(ProyectosController::class)->group(function () {
     Route::post('guardarproyecto','store');
     Route::delete('eliminarproyecto','delete');
     Route::put('modificarproyecto','update');
- /*   Route::get('politica-garantia','politicagarantia');
-    Route::get('manifiestos','manifiestos'); */
+});
+
+
+Route::controller(TareasController::class)->group(function () {
+    Route::post('guardartarea','store');
+    Route::delete('eliminartarea','delete');
+    Route::put('modificartarea','update');
 });

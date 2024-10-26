@@ -4,40 +4,26 @@ namespace App\Http\Controllers\Proyectos;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Servicios\ServicioProyectos;
+use App\Servicios\ServicioTareas;
 use Illuminate\Support\Facades\DB;
 
-class ProyectosController extends Controller
+
+class TareasController extends Controller
 {
-    public function index()
-    {
-        return view('proyectos.proyectos');
-    }
-
-    public function proyectos()
-    {
-        $servicioProyectos = new ServicioProyectos();
-        $proyectos = $servicioProyectos->obtenerProyectos();
-        $arrayRetorno = [
-            'proyectos'=>$proyectos
-        ];
-        return response()->json($arrayRetorno);
-    }
-
     public function delete(Request $request)
     {
         $mensaje = "Error interno del servidor";
         $status = "error";
 		try {
             $result = DB::transaction(function() use($request,$mensaje,$status) {
-                $servicioProyectos = new ServicioProyectos();
-                $proyecto = $servicioProyectos->eliminarProyecto($request);
-                $mensaje = "Eliminado exitosamente";
+                $servicioTareas = new ServicioTareas();
+                $tarea = $servicioTareas->eliminarTarea($request);
+                $mensaje = "Eliminada exitosamente";
                 $status = "success";
                 $arrayRetorno = [
                     'status' => $status,
                     'mensaje' => $mensaje,
-                    'proyecto'=>$proyecto
+                    'tarea'=>$tarea
                 ];
                 return response()->json($arrayRetorno);
             });
@@ -58,14 +44,14 @@ class ProyectosController extends Controller
         $status = "error";
 		try {
             $result = DB::transaction(function() use($request,$mensaje,$status) {
-                $servicioProyectos = new ServicioProyectos();
-                $proyecto = $servicioProyectos->modificarProyecto($request);
-                $mensaje = "Guardado exitosamente";
+                $servicioTareas = new ServicioTareas();
+                $tarea = $servicioTareas->modificarTarea($request);
+                $mensaje = "Guardada exitosamente";
                 $status = "success";
                 $arrayRetorno = [
                     'status' => $status,
                     'mensaje' => $mensaje,
-                    'proyecto'=>$proyecto
+                    'tarea'=>$tarea
                 ];
                 return response()->json($arrayRetorno);
             });
@@ -86,14 +72,14 @@ class ProyectosController extends Controller
         $status = "error";
 		try {
             $result = DB::transaction(function() use($request,$mensaje,$status) {
-                $servicioProyectos = new ServicioProyectos();
-                $proyecto = $servicioProyectos->insertarProyecto($request);
-                $mensaje = "Guardado exitosamente";
+                $servicioTareas = new ServicioTareas();
+                $tarea = $servicioTareas->insertarTarea($request);
+                $mensaje = "Guardada exitosamente";
                 $status = "success";
                 $arrayRetorno = [
                     'status' => $status,
                     'mensaje' => $mensaje,
-                    'proyecto'=>$proyecto
+                    'tarea'=>$tarea
                 ];
                 return response()->json($arrayRetorno);
             });

@@ -41,7 +41,7 @@
                     <div id="mensajeAlertTabla"></div>
                         <div class="table-responsive">
 
-                        <table class="table">
+                        <table class="table table-striped">
                             <thead>
                                 <tr>
                                     <th>Nombre</th>
@@ -72,7 +72,7 @@
             <div class="modal-body">
                 <div id="mensajeAlertModal"></div>
                 <div class="row">
-                    <div class="col-lg-6" id="formProyecto">
+                    <div class="col-lg-6" id="formModificarProyecto">
                         
                         <div class="mb-3">
                             <label for="nombre" class="form-label">Nombre</label>
@@ -103,6 +103,385 @@
             </div>
         </div>
     </div>
+
+
+    <div class="modal" tabindex="-1" id="modalTareas"  data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="tituloModalTareas"></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="mensajeAlertModalTareas"></div>
+                <div class="row">
+                    <div class="col-lg-6" id="formTareas">
+                        
+                        <div class="mb-3">
+                            <label for="tituloTarea" class="form-label">Título</label>
+                            <input  autocomplete="new-password" type="text" maxlength="50" class="form-control form-control-sm" id="tituloTarea" name="tituloTarea" placeholder="">
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="fechaVencimiento" class="form-label">Fecha Vencimiento</label>
+                            <input  autocomplete="new-password" type="date" class="form-control form-control-sm" id="fechaVencimiento" name="fechaVencimiento" placeholder="">
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="mb-3">
+                            <label for="descripcionTarea" class="form-label">Descripción</label>
+                            <textarea  autocomplete="new-password" style="resize: none;" class="form-control form-control-sm" id="descripcionTarea" name="descripcionTarea" rows="3"></textarea>
+                        </div>
+
+                        <div id="contenedorBtnFormularioTareas">
+
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div id="contenedorModalTareas" style="margin-top:10px;" class="col-12">
+
+                    </div>
+                </div>
+            </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="text/javascript">
+        function guardarTarea(idProyecto,index){
+            const indexProyecto = proyectos.findIndex((x)=>x.id == idProyecto);
+            if(indexProyecto != -1){
+
+            
+                var _token = document.getElementsByName('_token')[0].value;
+                
+                let fechaInicioProyecto = proyectos[indexProyecto].fecha_inicio;
+                let tituloTarea = document.getElementById('tituloTarea').value;
+                let fechaVencimiento = document.getElementById('fechaVencimiento').value;
+                let descripcionTarea = document.getElementById('descripcionTarea').value;
+
+                const partesFecha = fechaInicioProyecto.split('-');
+                const ano = parseInt(partesFecha[0], 10);
+                const mes = parseInt(partesFecha[1], 10) - 1;
+                const dia = parseInt(partesFecha[2], 10);
+
+                const partesFechaVencimiento = fechaVencimiento.split('-');
+                const anoVencimiento = parseInt(partesFechaVencimiento[0], 10);
+                const mesVencimiento = parseInt(partesFechaVencimiento[1], 10) - 1;
+                const diaVencimiento = parseInt(partesFechaVencimiento[2], 10);
+
+
+
+                let fechaInicioComparar = new Date(ano, mes, dia);
+                let fechaVencimientoComparar = new Date(anoVencimiento, mesVencimiento, diaVencimiento);
+
+                fechaInicioComparar.setHours(0, 0, 0, 0);
+                fechaVencimientoComparar.setHours(0, 0, 0, 0);
+            
+                if(!tituloTarea || !fechaVencimiento || !descripcionTarea){
+                    presentarMensajeAlert('mensajeAlertModalTareas',"Debe completar el formulario");
+                }else if(tituloTarea?.length < 3){
+                    presentarMensajeAlert('mensajeAlertModalTareas',"El nombre de la tarea debe tener mínimo 3 caracteres");
+                }else if(fechaVencimientoComparar < fechaInicioComparar){
+                    presentarMensajeAlert('mensajeAlertModalTareas',"La fecha de vencimiento no debe ser menor a la fecha de inicio del proyecto");
+                }else{
+                    let data = {
+                        id_proyecto:idProyecto,
+                        titulo:tituloTarea,
+                        descripcion:descripcionTarea,
+                        fecha_vencimiento:fechaVencimiento,
+                        _token:_token,
+                    };
+
+                    $.ajax({
+                        url : '{{url("guardartarea")}}',
+                        type: 'post',
+                        dataType: 'JSON',
+                        data:data,
+                        beforeSend: function(){
+                            $("#mensajeAlertModalTareas").html('');
+                        },
+                        uploadProgress: function(event,position,total,percentComplete){
+                            
+                        },
+                        success: function(data){
+                            if(data.status == "success"){
+                                 console.log('guardarTarea',data);
+                                 proyectos[indexProyecto].tareas.unshift(data.tarea);
+                                 cargarTareas(idProyecto,index);
+                                 const inputs = document.querySelectorAll('#formTareas input,#formProyecto textarea');
+                                inputs.forEach(input => {
+                                    input.value = '';
+                                })
+                                presentarMensajeAlert('mensajeAlertModalTareas',data.mensaje,"success");
+                            }else{
+                                presentarMensajeAlert('mensajeAlertModalTareas',data.mensaje,"error");
+                            }
+                        },
+                        complete: function(){
+
+                        },
+                        error: function(xhr, textStatus, errorThrown) {
+                            if(xhr.status == 0){
+                                presentarMensajeAlert('mensajeAlertModalTareas','No se puede comunicar con el servidor',"error");
+                            }else if(xhr.status == 401){
+                                presentarMensajeAlert('mensajeAlertModalTareas','Usuario o clave no son correctos',"error");
+                            }else{
+                                presentarMensajeAlert('mensajeAlertModalTareas',xhr.status+': '+xhr.statusText,"error");
+                            }
+                            
+                        }
+                    });
+                }
+            }
+        }
+
+        function modificarTarea(idProyecto,idTarea,index,indexTarea){
+            const indexProyecto = proyectos.findIndex((x)=>x.id == idProyecto);
+            if(indexProyecto != -1){
+
+            
+                var _token = document.getElementsByName('_token')[0].value;
+                
+                let fechaInicioProyecto = proyectos[indexProyecto].fecha_inicio;
+                let tituloTarea = document.getElementById('tituloTareaModificar'+indexTarea).value;
+                let fechaVencimiento = document.getElementById('fechaVencimientoModificar'+indexTarea).value;
+                let descripcionTarea = document.getElementById('descripcionTareaModificar'+indexTarea).value;
+
+                let completada = 0;
+                if($("#completada"+indexTarea).is(':checked')){
+                    completada = 1;
+                }
+
+                const partesFecha = fechaInicioProyecto.split('-');
+                const ano = parseInt(partesFecha[0], 10);
+                const mes = parseInt(partesFecha[1], 10) - 1;
+                const dia = parseInt(partesFecha[2], 10);
+
+                const partesFechaVencimiento = fechaVencimiento.split('-');
+                const anoVencimiento = parseInt(partesFechaVencimiento[0], 10);
+                const mesVencimiento = parseInt(partesFechaVencimiento[1], 10) - 1;
+                const diaVencimiento = parseInt(partesFechaVencimiento[2], 10);
+
+
+
+                let fechaInicioComparar = new Date(ano, mes, dia);
+                let fechaVencimientoComparar = new Date(anoVencimiento, mesVencimiento, diaVencimiento);
+
+                fechaInicioComparar.setHours(0, 0, 0, 0);
+                fechaVencimientoComparar.setHours(0, 0, 0, 0);
+            
+                if(!idTarea || !tituloTarea || !fechaVencimiento || !descripcionTarea){
+                    presentarMensajeAlert('mensajeAlertModalTareas'+indexTarea,"Debe completar el formulario");
+                }else if(tituloTarea?.length < 3){
+                    presentarMensajeAlert('mensajeAlertModalTareas'+indexTarea,"El nombre de la tarea debe tener mínimo 3 caracteres");
+                }else if(fechaVencimientoComparar < fechaInicioComparar){
+                    presentarMensajeAlert('mensajeAlertModalTareas'+indexTarea,"La fecha de vencimiento no debe ser menor a la fecha de inicio del proyecto");
+                }else{
+                    let data = {
+                        id:idTarea,
+                        id_proyecto:idProyecto,
+                        titulo:tituloTarea,
+                        descripcion:descripcionTarea,
+                        fecha_vencimiento:fechaVencimiento,
+                        completada:completada,
+                        _token:_token,
+                    };
+
+                    console.log('data',data);
+
+                    $.ajax({
+                        url : '{{url("modificartarea")}}',
+                        type: 'put',
+                        dataType: 'JSON',
+                        data:data,
+                        beforeSend: function(){
+                            $("#mensajeAlertModalTareas"+indexTarea).html('');
+                        },
+                        uploadProgress: function(event,position,total,percentComplete){
+                            
+                        },
+                        success: function(data){
+                            if(data.status == "success"){
+                                console.log('modificarTarea',data);
+                                proyectos[indexProyecto].tareas[indexTarea] = data.tarea;
+                                $("#tarea"+indexTarea+" button").text(tituloTarea);
+                                presentarMensajeAlert('mensajeAlertModalTareas'+indexTarea,data.mensaje,"success");
+                            }else{
+                                presentarMensajeAlert('mensajeAlertModalTareas'+indexTarea,data.mensaje,"error");
+                            }
+                        },
+                        complete: function(){
+
+                        },
+                        error: function(xhr, textStatus, errorThrown) {
+                            if(xhr.status == 0){
+                                presentarMensajeAlert('mensajeAlertModalTareas'+indexTarea,'No se puede comunicar con el servidor',"error");
+                            }else if(xhr.status == 401){
+                                presentarMensajeAlert('mensajeAlertModalTareas'+indexTarea,'Usuario o clave no son correctos',"error");
+                            }else{
+                                presentarMensajeAlert('mensajeAlertModalTareas'+indexTarea,xhr.status+': '+xhr.statusText,"error");
+                            }
+                            
+                        }
+                    });
+                }
+            }
+        }
+
+        function eliminarTarea(idProyecto,idTarea,index,indexTarea){
+            const indexProyecto = proyectos.findIndex((x)=>x.id == idProyecto);
+            if(indexProyecto != -1){
+
+            
+                var _token = document.getElementsByName('_token')[0].value;
+                
+
+                let data = {
+                    id:idTarea,
+                    _token:_token,
+                };
+
+                console.log('data',data);
+
+                $.ajax({
+                    url : '{{url("eliminartarea")}}',
+                    type: 'delete',
+                    dataType: 'JSON',
+                    data:data,
+                    beforeSend: function(){
+                        $("#mensajeAlertModalTareas"+indexTarea).html('');
+                    },
+                    uploadProgress: function(event,position,total,percentComplete){
+                        
+                    },
+                    success: function(data){
+                        if(data.status == "success"){
+                            console.log('eliminarTarea',data);
+                            const indexProyecto = proyectos.findIndex((x)=>x.id == idProyecto);
+                            if(indexProyecto != -1){
+                                const indexTarea = proyectos[indexProyecto].tareas.findIndex((x)=>x.id == idTarea);
+                                if(indexTarea != -1){
+                                    proyectos[indexProyecto].tareas.splice(indexTarea, 1);
+                                    cargarTareas(idProyecto,index);
+                                }
+                            }
+                            presentarMensajeAlert('mensajeAlertModalTareas'+indexTarea,data.mensaje,"success");
+                        }else{
+                            presentarMensajeAlert('mensajeAlertModalTareas'+indexTarea,data.mensaje,"error");
+                        }
+                    },
+                    complete: function(){
+
+                    },
+                    error: function(xhr, textStatus, errorThrown) {
+                        if(xhr.status == 0){
+                            presentarMensajeAlert('mensajeAlertModalTareas'+indexTarea,'No se puede comunicar con el servidor',"error");
+                        }else if(xhr.status == 401){
+                            presentarMensajeAlert('mensajeAlertModalTareas'+indexTarea,'Usuario o clave no son correctos',"error");
+                        }else{
+                            presentarMensajeAlert('mensajeAlertModalTareas'+indexTarea,xhr.status+': '+xhr.statusText,"error");
+                        }
+                        
+                    }
+                });
+                
+            }
+        }
+
+        function cargarTareas(idProyecto,index){
+            const indexProyecto = proyectos.findIndex((x)=>x.id == idProyecto);
+            if(indexProyecto != -1){
+                 let btnGuardarTarea = '<div class="d-grid gap-2"  style="margin-bottom:5px"><button onclick="guardarTarea('+idProyecto+','+index+')" id="btnGuardarTarea" name="btnGuardarTarea" class="btn btn-primary" type="button">Guardar</button></div>';
+                $("#contenedorBtnFormularioTareas").html(btnGuardarTarea); 
+
+               
+
+                
+                let proyecto = proyectos[indexProyecto];
+                $("#tituloModalTareas").html('Tareas: '+proyecto.nombre)
+
+                let accordion = '';
+                proyecto.tareas.forEach((tarea,indexTarea)=>{
+                    let completada = '';
+                    if(tarea.completada == true){
+                        completada = 'checked';
+                    }
+
+                    let checkBox = '<div class="form-check">'+
+                        '<input '+completada+' style="cursor:pointer;" class="form-check-input" type="checkbox" value="" id="completada'+indexTarea+'">'+
+                        '<label style="cursor:pointer;" class="form-check-label" for="completada'+indexTarea+'">'+
+                            'Completada'+
+                        '</label>'+
+                    '</div>';
+                    let btnModificar = '<div class="d-grid gap-2"  style="margin-bottom:5px"><button onclick="modificarTarea('+idProyecto+','+tarea.id+','+index+','+indexTarea+')" id="btnModificar" name="btnModificar" class="btn btn-success" type="button">Modificar</button></div>';
+
+
+                    let btnEliminar = '<div class="d-grid gap-2"  style="margin-bottom:5px"><button onclick="eliminarTarea('+idProyecto+','+tarea.id+','+index+','+indexTarea+')" id="btnModificar" name="btnModificar" class="btn btn-danger" type="button">Eliminar</button></div>';
+
+
+                    let inputTituloTarea = '<div class="mb-3">'+
+                            '<label for="tituloTareaModificar" class="form-label">Título</label>'+
+                            '<input  autocomplete="new-password" type="text" maxlength="50" class="form-control form-control-sm" id="tituloTareaModificar'+indexTarea+'" name="tituloTareaModificar'+indexTarea+'" placeholder="" value="'+tarea.titulo+'">'+
+                    '</div>';
+
+                    let inputFechaVencimiento = '<div class="mb-3">'+
+                            '<label for="fechaVencimientoModificar'+indexTarea+'" class="form-label">Fecha Vencimiento</label>'+
+                            '<input  autocomplete="new-password" type="date" class="form-control form-control-sm" id="fechaVencimientoModificar'+indexTarea+'" name="fechaVencimientoModificar'+indexTarea+'" placeholder="" value="'+tarea.fecha_vencimiento+'">'+
+                    '</div>';
+
+                    let inputDescripcion = '<div class="mb-3">'+
+                            '<label for="descripcionTareaModificar'+indexTarea+'" class="form-label">Descripción</label>'+
+                            '<textarea  autocomplete="new-password" style="resize: none;" class="form-control form-control-sm" id="descripcionTareaModificar'+indexTarea+'" name="descripcionTareaModificar'+indexTarea+'" rows="3">'+tarea.descripcion+'</textarea>'+
+                        '</div>';
+
+                    accordion = accordion + '<div class="accordion-item">'+
+                        '<h2 class="accordion-header" id="tarea'+indexTarea+'">'+
+                            '<button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne'+indexTarea+'" aria-expanded="true" aria-controls="collapseOne">'+
+                                tarea.titulo+
+                            '</button>'+
+                        '</h2>'+
+                        '<div id="collapseOne'+indexTarea+'" class="accordion-collapse collapse" aria-labelledby="tarea'+indexTarea+'" data-bs-parent="#accordionExample">'+
+                            '<div class="accordion-body">'+
+                                '<div class="row">'+
+                                    '<div class="col-12" id="mensajeAlertModalTareas'+indexTarea+'">'+
+                                    '</div>'+
+                                '</div>'+
+                                '<div class="row">'+
+                                    '<div class="col-4">'+
+                                        inputTituloTarea+
+                                    '</div>'+
+                                    '<div class="col-4">'+
+                                        inputFechaVencimiento+
+                                    '</div>'+
+                                    '<div class="col-4">'+
+                                        checkBox+
+                                    '</div>'+
+                                '</div>'+
+                                '<div class="row">'+
+                                    '<div class="col-4">'+
+                                        inputDescripcion+
+                                    '</div>'+
+                                    '<div class="col-4">'+
+                                        btnModificar+
+                                    '</div>'+
+                                    '<div class="col-4">'+
+                                        btnEliminar+
+                                    '</div>'+
+                                '</div>'+
+                            '</div>'+
+                        '</div>'+
+                    '</div>';
+                });
+
+                let grupoAccordion = '<div class="accordion accordion-flush" id="accordionExample">'+
+                    accordion+
+                '</div>';
+                $("#contenedorModalTareas").html(grupoAccordion);
+            }
+        }
+    </script>
 
     <script type="text/javascript">
         $(document).ready(function(){
@@ -227,17 +606,17 @@
                     '<button title="Modificar '+proyecto.nombre+'" data-bs-toggle="modal" data-bs-target="#modalMoficiarProyecto" onclick="cargarModificarProyecto('+proyecto.id+','+index+')" id="btnModificar'+index+'" name="btnModificar'+index+'" class="btn btn-success btn-sm" type="button"><i class="bi bi-pencil"></i></button>'+
                 '</div>';
 
-                let btnTareas = '<div class="d-grid gap-2" style="margin-bottom:5px">'+
+  /*               let btnTareas = '<div class="d-grid gap-2" style="margin-bottom:5px">'+
                         '<button title="Ver Tareas de '+proyecto.nombre+'" onclick="tareasProyecto(\"'+proyecto.id+'\")" id="btnTareas'+index+'" name="btnTareas'+index+'" class="btn btn-primary btn-sm" type="button"><i class="bi bi-card-checklist"></i></button>'+
-                '</div>';
+                '</div>'; */
 
 
-                filaProyecto = filaProyecto+'<tr id="filaProyecto'+index+'">'+
+                filaProyecto = filaProyecto+'<tr data-bs-toggle="modal" data-bs-target="#modalTareas" onclick="cargarTareas('+proyecto.id+','+index+')" style="cursor:pointer;" id="filaProyecto'+index+'">'+
                     '<td>'+proyecto.nombre+'</td>'+
                     '<td>'+proyecto.fecha_inicio+'</td>'+
                     '<td>'+proyecto.fecha_fin+'</td>'+
                     '<td>'+proyecto.descripcion+'</td>'+
-                    '<td>'+btnModificar+btnEliminar+btnTareas+'</td>'+
+                    '<td>'+btnModificar+btnEliminar+'</td>'+
                 +'</tr>';
             });
             $("#bodyTablaProyectos").html(filaProyecto);
@@ -341,7 +720,7 @@
                             console.log('guardarProyecto',data);
                             proyectos.unshift(data.proyecto);
                             cargarTablaProyectos(proyectos);
-                            const inputs = document.querySelectorAll('#formProyecto input, #miDiv textarea');
+                            const inputs = document.querySelectorAll('#formProyecto input, #formProyecto textarea');
                             inputs.forEach(input => {
                                 input.value = '';
                             });
